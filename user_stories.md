@@ -22,6 +22,6 @@ A player hasn't been added to the database. When the brackets are made, they are
 
 A player doesn't have any data on a specific swing, so when calculated, it returns a divide by zero error.
 
-
+A Club officer sends out invitations to an unpublished event. A 404 error is shown when players click on the invatation. 
 
 
