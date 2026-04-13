@@ -3,5 +3,5 @@ A stat tracker for Tennis. Whose purpose it to hopefully track the following sta
 
 # Contributors
 - David Montiel dmonti01@calpoly.edu
-- Ruben Remus Lupen rlemuspi@calpoly.edu
+- Ruben Lemus Pimentel rlemuspi@calpoly.edu
 - Nathan St. John nastjohn@calpoly.edu 
