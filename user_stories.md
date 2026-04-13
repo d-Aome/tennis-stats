@@ -7,6 +7,8 @@ As a recreational Tennis player, I want to improve my return of serve game by tr
 
 As a Tennis Club officer, I want to build a ranking system for individual players.
 
+As a Tennis tournament organizer, I want to make a live professional tennis tournament and broadcast player stats and points on tv during their match so that professional tennis players have more tournaments to play and watchers can watch more tennis.
+
 # Exceptions:
 A player hasn't been added to the database. When the brackets are made, they aren't placed in the tournament.
 
