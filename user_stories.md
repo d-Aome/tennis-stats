@@ -9,10 +9,14 @@ As a Tennis Club officer, I want to build a ranking system for individual player
 
 As a Tennis tournament organizer, I want to make a live professional tennis tournament and broadcast player stats and points on tv during their match so that professional tennis players have more tournaments to play and watchers can watch more tennis.
 
-- As a Tennis Club Officier, I want to be able to orgainze events so that players in the club can play in competitive matches.
-- As a Tennis Club Officer i want to be able to see final score of a match so that  future competitive matches have a improved match making.
-- As a Tennis player I want to be able to Find Player of similiar Skill so that i can request to hit with them.
-- As a Tennis player i want to lookup opponents in tournaments so that i can see their previous matches and wins.
+As a Tennis Club Officier, I want to be able to orgainze events so that players in the club can play in competitive matches.
+ 
+As a Tennis Club Officer I want to be able to see final score of a match so that future competitive matches have an improved match making.
+ 
+As a Tennis player I want to be able to find Player of similiar skill level so that I can request to play tennis with them.
+ 
+As a Tennis player I want to look up opponents in tournaments so that I can see their previous matches and wins.
+ 
 # Exceptions:
 A player hasn't been added to the database. When the brackets are made, they aren't placed in the tournament.
 
