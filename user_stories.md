@@ -32,7 +32,7 @@ A Club officer sends out invitations to an unpublished event. A 404 error is sho
 
 A duplicate player is added. The system will stop the entry and ask if the user wants to update the existing player instead.
 
-There is an odd number of players in a tournament. The system will assign a bye or notify the organizer.
+There is an odd number of players in a tournament. The system will assign a bye or notify tournament organizer.
 
 An invalid match score is entered. The system will reject the score and ask for a valid one.
 
