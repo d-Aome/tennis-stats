@@ -43,7 +43,7 @@ POST /match/50
 
 Request:
 {
-"particapants": [{"name": "Garret Chan", "utrRating": 4.0},
+"particapants": [{"name": "Garret Chan", "utrRating": 1.0},
 {"name": "Arhant Shroff", "utrRating": 9.0}
 ],
 "winners": [],
@@ -63,7 +63,7 @@ GET /match/50
 Response:
 {
 "particapants": [
-{"name": "Garret Chan", "utrRating": 4.0},
+{"name": "Garret Chan", "utrRating": 1.0},
 {"name": "Arhant Shroff", "utrRating": 9.0}
 ],
 "winners": [],
