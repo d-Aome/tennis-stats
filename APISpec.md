@@ -6,6 +6,7 @@
 3. `Update Player Statistics`
 4. `Get Player Matches`
 5. `Remove player`
+
 ### 1.1 Get Player statistics - `/player/{player_id}` (GET)
  Retrives the statistics for specific player.
 
@@ -23,6 +24,7 @@
  ```
 
 ### 1.2 Add New Player - `/player/{player_id}` (Post)
+
 Add a new Player to the database
 
 **Request**:
@@ -70,7 +72,7 @@ The API returns a json Object of the following structure:
 **Response**:
 A JSON Object of the following Structure
  - `playerName`: The Players name
- - `matchHistory`: A list of JSON Objes represeting previous matches
+ - `matchHistory`: A list of JSON Objects with the following representation: 
     - `particapnts`: A list of the particpants
     - `score`: A list of of varying length with JSON Objects representing Score for the set with
       - `gameScore`: The game score
@@ -167,8 +169,10 @@ Create an Event.
 - `particapant limit`: the maximum number of particpants.
 - `location`: A physcial Address of where the event is located.
 - `dateTime`: The time of when the event is happening.
-- 
+
 **Response**:
+
+A status code 200.
 
 ```json
 {
@@ -178,14 +182,52 @@ Create an Event.
 
 ### 3.2 Update Event Information - `/event/{event_id}}` (PUT)
 
+Update information about an event
 
-### 3.3 Add Player to Event - `event/{event_id}/{player_id}` (POST)
+**Request**: 
 
-**Response**:
+- `name` (optional) : the name of the event.
+- `particapantLimit` (optional) : the maximum number of particpants.
+- `location` (optional) : A physcial Address of where the event is located.
+- `dateTime` (optional) : The time of when the event is happening.
+
+**Response**
+
+- `name` : the name of the event.
+- `particapantLimit` : the maximum number of particpants.
+- `location` : A physcial Address of where the event is located.
+- `dateTime` : The time of when the event is happening.
+
+### 3.3 Add Player to Event - `/event/{event_id}/{player_id}` (POST)
+
+
+
 ```json
 {
  "success": "boolean"
 }
 ```
-### Get Current Events -  `event/` (GET)
 
+### Get  Events -  `/event/{query_params}` (GET)
+
+Find Events witt certain search parameters
+
+**Request**:
+
+- `Organizer` : Search by who is organinzing an event
+- `StartdateTime` : An dateTime which is the earlist date and time a tournament starts
+- `EnddateTime`: A dateTime which is the latest of when a tournament can end.
+- `Location` : The Location where Event is happening
+- `Format`: The number of sets to win a match 3 or 5. 
+
+
+**Response**:
+```json
+{
+"organizer": "string"/*  Search by who is organinzing an event /* 
+"startdateTime" : "DateTime" /* An dateTime which is the earlist date and time a tournament starts */ 
+"EnddateTime" : "DateTime" /* A dateTime which is the latest of when a tournament can end. */ 
+"Location" : "string" /* The Location where Event is happening */
+"Format" :  "integer" /* The number of sets to win a match 3 or 5. /*
+}
+```
