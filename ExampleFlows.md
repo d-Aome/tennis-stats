@@ -1,5 +1,6 @@
 # Example Flows
 
+
 ##### 1. Tennis Club Officer Creating an Event and Matches
 
 A Tennis Club officer wants to organize an event for players in the club and create matches so players can compete against each other in friendly matches.
@@ -73,8 +74,15 @@ Response:
 
 This flow connects to organizing events and setting up matches for players.
 
+
+
+
 --------------------
 --------------------
+
+
+
+
 
 ##### 2. Tennis Player Tracking Match Stats
 
@@ -143,5 +151,80 @@ Response:
 
 This flow connects to tracking first serve %, second serve %, and match results.
 
----------------
----------------
+
+
+
+
+------------------------
+------------------------
+
+
+
+########## 3. Tennis Player Looking Up Opponents and Match History
+
+A Tennis player wants to look up opponents and view their past matches before playing them.
+
+First, the player checks their own stats:
+
+GET /player/30
+
+Response:
+[
+{
+"firstServesPercentage": 62.5,
+"secondServesWon": 55.0,
+"utrRating": 3.8,
+"matchesWon": 6,
+"matchesLost": 3
+}
+]
+
+Then the player checks another player’s stats:
+
+GET /player/24
+
+Response:
+[
+{
+"firstServesPercentage": 60.0,
+"secondServesWon": 52.0,
+"utrRating": 3.9,
+"matchesWon": 7,
+"matchesLost": 2
+}
+]
+
+Next, they look at that player’s match history:
+
+GET /player/24
+
+Response:
+{
+"playerName": "Ruben Lemus Pimentel",
+"matchHistory": [{"particapants": ["Ruben Lemus Pimentel", "Jessica Ai"],
+"score": ["7-5"]
+},
+{
+"particapants": ["Ruben Lemus Pimentel", "Vincent Huang"],
+"score": ["4-6", "6-4", "7-6"]
+}
+],
+"matchesWon": 7,
+"matcheslost": 2
+}
+
+Finally, they check a specific match:
+
+GET /match/48
+
+Response:
+{
+"participants": [
+{"name": "Ruben Lemus Pimentel"},
+{"name": "David Montiel"}
+],
+"winners": ["David Montiel"],
+"score": ["6-7", "5-7"]
+}
+
+This flow connects to looking up opponents and viewing their match history.
