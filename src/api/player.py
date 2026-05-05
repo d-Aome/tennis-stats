@@ -110,7 +110,7 @@ def get_player(player_id: int):
                     """
                         SELECT name, utr_rating, first_serve_percentage, second_serve_percentage, matches_won
                         FROM players
-                        LEFT JOIN player_stats ON player.id = player_stats.player_id
+                        LEFT JOIN player_stats ON players.id = player_stats.player_id
                         WHERE players.id = :id
                         """
                 ),
@@ -126,6 +126,6 @@ def get_player(player_id: int):
                 second_serve_percentage=stats["second_serve_percentage"],
                 matches_won=stats["matches_won"],
             )
-    except sa.exc.SQLAlchemyError() as e:
+    except sa.exc.SQLAlchemyError as e:
         print(f"Error fetching Player statistics {player_id}, {e}")
         raise
