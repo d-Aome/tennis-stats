@@ -105,17 +105,22 @@ def update_player(statistics: PlayerStatistics, player_id: int):
 def get_player(player_id: int):
     try:
         with db.engine.begin() as conn:
-            stats = conn.execute(
-                sa.text(
-                    """
+            stats = (
+                conn.execute(
+                    sa.text(
+                        """
                         SELECT name, utr_rating, first_serve_percentage, second_serve_percentage, matches_won
                         FROM players
                         LEFT JOIN player_stats ON players.id = player_stats.player_id
                         WHERE players.id = :id
                         """
-                ),
-                {"id": player_id},
-            ).first()
+                    ),
+                    {"id": player_id},
+                )
+                .mappings()
+                .first()
+            )
+
             if not stats:
                 return status.HTTP_404_NOT_FOUND
 
