@@ -15,13 +15,13 @@ tags_metadata = [
 ]
 
 app = FastAPI(
-    title="Central Coast Cauldrons",
+    title="Tennis Stats",
     description=description,
     version="0.0.1",
     terms_of_service="http://example.com/terms/",
     contact={
-        "name": "Lucas Pierce",
-        "email": "lupierce@calpoly.edu",
+        "name": "David Montiel, Ruben Lemus Pimmentel, Nathan St. John ",
+        "email": "dmonti01@calpoly.edu, rlemuspi@calpoly.edu, nastjohn@calpoly.edu",
     },
     openapi_tags=tags_metadata,
 )
@@ -42,4 +42,4 @@ app.include_router(matches.router)
 
 @app.get("/")
 async def root():
-    return {"message": "Shop is open for business!"}
+    return {"message": "Welcome to Tennis Statistics"}

@@ -9,7 +9,7 @@ from src.api import auth
 
 router = APIRouter(
     prefix="/matches",
-    tags=["bottler"],
+    tags=["matches"],
     dependencies=[Depends(auth.get_api_key)],
 )
 

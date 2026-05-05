@@ -8,7 +8,7 @@ import sqlalchemy as sa
 
 router = APIRouter(
     prefix="/players",
-    tags=["bottler"],
+    tags=["player"],
     dependencies=[Depends(auth.get_api_key)],
 )
 
