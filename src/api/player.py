@@ -29,6 +29,14 @@ class PlayersResponse(BaseModel):
     msg: str
 
 
+class GetResponse(BaseModel):
+    name: str
+    utr: float
+    first_serve_percentage: float
+    second_serve_percentage: float
+    matches_won: int
+
+
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def post_player(player: Player, stats: PlayerStatistics):
     try:
@@ -63,7 +71,7 @@ def post_player(player: Player, stats: PlayerStatistics):
     return PlayersResponse(success=True, msg=f"Player id: {player_id}")
 
 
-@router.put("/{player_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.put("/{player_id}", status_code=status.HTTP_200_OK)
 def update_player(statistics: PlayerStatistics, player_id: int):
     try:
         with db.engine.begin() as conn:
@@ -73,18 +81,51 @@ def update_player(statistics: PlayerStatistics, player_id: int):
                         UPDATE player_stats
                         SET
                             first_serve_percentage = :first,
-                            second_server_percentage = :second,
+                            second_serve_percentage = :second,
                             matches_won = :won
                         WHERE id = :id
+                        RETURNING first_serve_percentage
                         """
                 ),
                 {
                     "first": statistics.first_serve_percentage,
                     "second": statistics.second_serve_percentage,
                     "won": statistics.matches_won,
+                    "id": player_id,
                 },
             )
 
-    except sa.exc.SQLAlchemyError:
-        return PlayersResponse(success=False, msg="Internal Server Error")
+    except sa.exc.SQLAlchemyError as e:
+        print(f"Error updating player statistics {player_id}, {e}")
+        raise
     return PlayersResponse(success=True, msg="")
+
+
+@router.get("/{player_id}", status_code=status.HTTP_200_OK)
+def get_player(player_id: int):
+    try:
+        with db.engine.begin() as conn:
+            stats = conn.execute(
+                sa.text(
+                    """
+                        SELECT name, utr_rating, first_serve_percentage, second_serve_percentage, matches_won
+                        FROM players
+                        LEFT JOIN player_stats ON player.id = player_stats.player_id
+                        WHERE players.id = :id
+                        """
+                ),
+                {"id": player_id},
+            ).first()
+            if not stats:
+                return status.HTTP_404_NOT_FOUND
+
+            return GetResponse(
+                name=stats["name"],
+                utr=stats["utr_rating"],
+                first_serve_percentage=stats["first_serve_percentage"],
+                second_serve_percentage=stats["second_serve_percentage"],
+                matches_won=stats["matches_won"],
+            )
+    except sa.exc.SQLAlchemyError() as e:
+        print(f"Error fetching Player statistics {player_id}, {e}")
+        raise
