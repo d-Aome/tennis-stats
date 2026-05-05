@@ -24,7 +24,11 @@ class PlayerStatistics(BaseModel):
     matches_won: int
 
 
-@router.post("/player", status_code=status.HTTP_201_CREATED)
+class PlayersResponse(BaseModel):
+    success: bool
+
+
+@router.post("/", status_code=status.HTTP_201_CREATED)
 def post_player(player: Player, stats: PlayerStatistics):
     with db.engine.begin() as conn:
         player_id = conn.execute(
@@ -54,7 +58,7 @@ def post_player(player: Player, stats: PlayerStatistics):
         )
 
 
-@router.put("/player/{player_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.put("/{player_id}", status_code=status.HTTP_204_NO_CONTENT)
 def update_player(statistics: PlayerStatistics, player_id: int):
     with db.engine.begin() as conn:
         conn.execute(

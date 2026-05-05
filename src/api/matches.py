@@ -24,7 +24,7 @@ class Particapant(BaseModel):
     team: int
 
 
-@router.post("/matches", status_code=status.HTTP_200_OK)
+@router.post("/", status_code=status.HTTP_200_OK)
 def post_match(match: Match, players: List[Particapant]):
     with db.engine.begin() as conn:
         match_id = conn.execute(
@@ -58,8 +58,10 @@ def post_match(match: Match, players: List[Particapant]):
             players_list,
         )
 
+    return
 
-@router.put("/matches/{match_id}", status_code=status.HTTP_204_NO_CONTENT)
+
+@router.put("/{match_id}", status_code=status.HTTP_204_NO_CONTENT)
 def update_match(match_id: int, score: Match):
     with db.engine.begin() as conn:
         conn.execute(
