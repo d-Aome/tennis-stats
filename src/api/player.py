@@ -34,7 +34,7 @@ def post_player(player: Player, stats: PlayerStatistics):
         player_id = conn.execute(
             sa.text(
                 """
-                    INSERT INTO players (name, utr)
+                    INSERT INTO players (name, utr_rating)
                     VALUES (:name, :utr)
                     RETURNING id
                     """
