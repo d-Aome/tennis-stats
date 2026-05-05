@@ -45,7 +45,7 @@ def run_migrations_online() -> None:
         raise Exception("No config section for Alembic")
     connectable = engine_from_config(
         configuration,
-        prefix="sqlalchemy.",
+        prefix="tennis_stats",
         poolclass=pool.NullPool,
     )
 
