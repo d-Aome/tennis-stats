@@ -2,9 +2,7 @@ from fastapi import FastAPI
 from src.api import player, matches
 from starlette.middleware.cors import CORSMiddleware
 
-description = """
-Central Coast Cauldrons is the premier ecommerce site for all your alchemical desires.
-"""
+description = """Welcome to Tennis stats, it can help you track player statistics"""
 tags_metadata = [
     {"name": "player", "description": "Add, Update and View Player Statistics"},
     {
