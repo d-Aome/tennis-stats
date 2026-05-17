@@ -1,9 +1,8 @@
 from typing import List
 
-from dns import name
 import sqlalchemy as sa
 from fastapi import APIRouter, Depends, status
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import BaseModel
 
 from src import database as db
 from src.api import auth
@@ -21,8 +20,9 @@ class Events(BaseModel):
     location: str | None
     date: str | None
 
+
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def post_event(event: Events):
+def post_event(event: Events) -> int:
     try:
         with db.engine.begin() as conn:
             event_id = conn.execute(
@@ -37,21 +37,22 @@ def post_event(event: Events):
                     "name": event.name,
                     "participants_limit": event.participants_limit,
                     "location": event.location,
-                    "date": event.date
+                    "date": event.date,
                 },
             ).scalar_one()
     except sa.exc.SQLAlchemyError:
         return status.HTTP_500_INTERNAL_SERVER_ERROR
-    return status.HTTP_201_CREATED
+    return event_id
 
 
-@router.get("/{events}", status_code=status.HTTP_200_OK, response_model=List[Events])
-def get_events(events: Events):
+@router.get("/{events}", status_code=status.HTTP_200_OK)
+def get_events(events: Events) -> List[Events]:
     try:
         with db.engine.begin() as conn:
-            result = conn.execute(
-                sa.text(
-                    """
+            result = (
+                conn.execute(
+                    sa.text(
+                        """
                         SELECT name, participants_limit, location, date
                         FROM events
                         WHERE (:name IS NULL OR name = :name)
@@ -59,17 +60,20 @@ def get_events(events: Events):
                             AND (:location IS NULL OR location = :location)
                             AND (:date IS NULL OR date = :date)
                     """
-                ),
-                {
-                    "name": events.name,
-                    "participants_limit": events.participants_limit,
-                    "location": events.location,
-                    "date": events.date,
-                },
-            ).mappings().all()
-    except sa.exc.SQLAlchemyError:
-        return status.HTTP_500_INTERNAL_SERVER_ERROR
-    return [Events(**i) for i in result]
+                    ),
+                    {
+                        "name": events.name,
+                        "participants_limit": events.participants_limit,
+                        "location": events.location,
+                        "date": events.date,
+                    },
+                )
+                .mappings()
+                .all()
+            )
+        return [Events(**i) for i in result]
+    except sa.exc.SQLAlchemyError as err:
+        raise err
 
 
 @router.put("/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -93,7 +97,7 @@ def update_event(event_id: int, event: Events):
                     "participants_limit": event.participants_limit,
                     "location": event.location,
                     "date": event.date,
-                    "event_id": event_id
+                    "event_id": event_id,
                 },
             )
     except sa.exc.SQLAlchemyError:
@@ -120,7 +124,3 @@ def add_player_to_event(event_id: int, player_id: int):
     except sa.exc.SQLAlchemyError:
         return status.HTTP_500_INTERNAL_SERVER_ERROR
     return status.HTTP_200_OK
-
-
-    
- 

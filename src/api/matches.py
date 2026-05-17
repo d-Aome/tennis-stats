@@ -1,8 +1,7 @@
 from typing import List
-
 import sqlalchemy as sa
 from fastapi import APIRouter, Depends, status
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import BaseModel
 
 from src import database as db
 from src.api import auth
@@ -63,8 +62,8 @@ def post_match(match: Match, players: List[Particapant]):
                 ),
                 players_list,
             )
-    except sa.exc.SQLAlchemyError:
-        return Response(success=False, msg="Internal Server Error")
+    except sa.exc.SQLAlchemyError as err:
+        return Response(success=False, msg=f"Internal Server Error \n{err}")
     return Response(success=True, msg=f"match id: {match_id}")
 
 
@@ -83,5 +82,5 @@ def update_match(match_id: int, score: Match):
                 ),
                 {"score": score.score, "match_id": match_id},
             )
-    except sa.exc.SQLAlchemyError:
-        raise status.HTTP_500_INTERNAL_SERVER_ERROR
+    except sa.exc.SQLAlchemyError as err:
+        raise err
