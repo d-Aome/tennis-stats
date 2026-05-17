@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.api import player, matches
+from src.api import player, matches, events
 from starlette.middleware.cors import CORSMiddleware
 
 description = """Welcome to Tennis stats, it can help you track player statistics"""
@@ -36,6 +36,7 @@ app.add_middleware(
 
 app.include_router(player.router)
 app.include_router(matches.router)
+app.include_router(events.router)
 
 
 @app.get("/")
