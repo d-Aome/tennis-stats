@@ -40,12 +40,13 @@ def post_event(event: Events) -> int:
                     "date": event.date,
                 },
             ).scalar_one()
-    except sa.exc.SQLAlchemyError:
-        return status.HTTP_500_INTERNAL_SERVER_ERROR
+    except sa.exc.SQLAlchemyError as err:
+        print("Internal Server Error")
+        raise err
     return event_id
 
 
-@router.get("/{events}", status_code=status.HTTP_200_OK)
+@router.get("/", status_code=status.HTTP_200_OK)
 def get_events(events: Events) -> List[Events]:
     try:
         with db.engine.begin() as conn:
@@ -100,8 +101,8 @@ def update_event(event_id: int, event: Events):
                     "event_id": event_id,
                 },
             )
-    except sa.exc.SQLAlchemyError:
-        return status.HTTP_500_INTERNAL_SERVER_ERROR
+    except sa.exc.SQLAlchemyError as err:
+        raise err
     return status.HTTP_204_NO_CONTENT
 
 
@@ -121,6 +122,6 @@ def add_player_to_event(event_id: int, player_id: int):
                     "player_id": player_id,
                 },
             )
-    except sa.exc.SQLAlchemyError:
-        return status.HTTP_500_INTERNAL_SERVER_ERROR
+    except sa.exc.SQLAlchemyError as err:
+        raise err
     return status.HTTP_200_OK
