@@ -17,3 +17,6 @@ dependencies = [
     "uv>=0.6.11",
     "uvicorn>=0.34.0",
 ]
+
+[tool.vercel]
+entrypoint = "src.api.server:app"
