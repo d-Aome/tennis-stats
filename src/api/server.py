@@ -24,7 +24,10 @@ app = FastAPI(
     openapi_tags=tags_metadata,
 )
 
-origins = ["https://tennis-stats-v3o5.onrender.com"]
+origins = [
+    "https://tennis-stats-v3o5.onrender.com",
+    "https://tennis-stats-ivory.vercel.app/",
+]
 
 app.add_middleware(
     CORSMiddleware,
