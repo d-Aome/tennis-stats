@@ -14,114 +14,187 @@ router = APIRouter(
 )
 
 
-class Events(BaseModel):
-    name: str | None
-    participants_limit: int | None
-    location: str | None
-    date: str | None
+class Event(BaseModel):
+    name: str
+    limit: int
+    location: str
+
+
+class AddPlayer(BaseModel):
+    player_id: int
+
+
+class EventResponse(BaseModel):
+    success: bool
+    msg: str
+
+
+class EventParticipant(BaseModel):
+    player_id: int
+    name: str
+    utr: float | None
+
+
+class EventParticipantsResponse(BaseModel):
+    event_id: int
+    event_name: str
+    participant_limit: int
+    participants: List[EventParticipant]
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def post_event(event: Events) -> int:
+def create_event(new_event: Event):
     try:
         with db.engine.begin() as conn:
             event_id = conn.execute(
                 sa.text(
                     """
-                        INSERT INTO events (name, participants_limit, location, date)
-                        VALUES (:name, :participants_limit, :location, :date)
-                        RETURNING id
-                        """
+                    INSERT INTO events (name, participant_limit, location)
+                    VALUES (:name, :participant_limit, :location)
+                    RETURNING id
+                    """
                 ),
                 {
-                    "name": event.name,
-                    "participants_limit": event.participants_limit,
-                    "location": event.location,
-                    "date": event.date,
+                    "name": new_event.name,
+                    "participant_limit": new_event.limit,
+                    "location": new_event.location,
                 },
             ).scalar_one()
-    except sa.exc.SQLAlchemyError as err:
-        print("Internal Server Error")
-        raise err
-    return event_id
+    except sa.exc.SQLAlchemyError:
+        return EventResponse(success=False, msg="Internal Server Error")
+    return EventResponse(success=True, msg=f"Event id: {event_id}")
 
 
-@router.get("/", status_code=status.HTTP_200_OK)
-def get_events(events: Events) -> List[Events]:
+@router.post("/{event_id}/players", status_code=status.HTTP_200_OK)
+def add_player_to_event(event_id: int, player: AddPlayer):
     try:
         with db.engine.begin() as conn:
-            result = (
+            event = (
                 conn.execute(
                     sa.text(
                         """
-                        SELECT name, participants_limit, location, date
+                        SELECT id, participant_limit
                         FROM events
-                        WHERE (:name IS NULL OR name = :name)
-                            AND (:participants_limit IS NULL OR participants_limit = :participants_limit)
-                            AND (:location IS NULL OR location = :location)
-                            AND (:date IS NULL OR date = :date)
-                    """
+                        WHERE id = :event_id
+                        FOR UPDATE
+                        """
                     ),
-                    {
-                        "name": events.name,
-                        "participants_limit": events.participants_limit,
-                        "location": events.location,
-                        "date": events.date,
-                    },
+                    {"event_id": event_id},
+                )
+                .mappings()
+                .first()
+            )
+
+            if not event:
+                return EventResponse(success=False, msg="Event not found")
+
+            player_exists = conn.execute(
+                sa.text(
+                    """
+                    SELECT id
+                    FROM players
+                    WHERE id = :player_id
+                    """
+                ),
+                {"player_id": player.player_id},
+            ).first()
+
+            if not player_exists:
+                return EventResponse(success=False, msg="Player not found")
+
+            already_joined = conn.execute(
+                sa.text(
+                    """
+                    SELECT id
+                    FROM event_participants
+                    WHERE event_id = :event_id AND player_id = :player_id
+                    """
+                ),
+                {"event_id": event_id, "player_id": player.player_id},
+            ).first()
+
+            if already_joined:
+                return EventResponse(success=False, msg="Player already in event")
+
+            participant_count = conn.execute(
+                sa.text(
+                    """
+                    SELECT COUNT(*)
+                    FROM event_participants
+                    WHERE event_id = :event_id
+                    """
+                ),
+                {"event_id": event_id},
+            ).scalar_one()
+
+            if participant_count >= event["participant_limit"]:
+                return EventResponse(success=False, msg="Event is full")
+
+            conn.execute(
+                sa.text(
+                    """
+                    INSERT INTO event_participants (event_id, player_id)
+                    VALUES (:event_id, :player_id)
+                    """
+                ),
+                {"event_id": event_id, "player_id": player.player_id},
+            )
+    except sa.exc.SQLAlchemyError:
+        return EventResponse(success=False, msg="Internal Server Error")
+    return EventResponse(success=True, msg="Player added to event")
+
+
+@router.get("/{event_id}/players", status_code=status.HTTP_200_OK)
+def get_event_players(event_id: int):
+    try:
+        with db.engine.begin() as conn:
+            event = (
+                conn.execute(
+                    sa.text(
+                        """
+                        SELECT id, name, participant_limit
+                        FROM events
+                        WHERE id = :event_id
+                        """
+                    ),
+                    {"event_id": event_id},
+                )
+                .mappings()
+                .first()
+            )
+
+            if not event:
+                return EventResponse(success=False, msg="Event not found")
+
+            participants = (
+                conn.execute(
+                    sa.text(
+                        """
+                        SELECT players.id AS player_id, players.name, players.utr_rating
+                        FROM event_participants
+                        JOIN players ON event_participants.player_id = players.id
+                        WHERE event_participants.event_id = :event_id
+                        ORDER BY players.utr_rating DESC NULLS LAST, players.name
+                        """
+                    ),
+                    {"event_id": event_id},
                 )
                 .mappings()
                 .all()
             )
-        return [Events(**i) for i in result]
-    except sa.exc.SQLAlchemyError as err:
-        raise err
 
-
-@router.put("/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
-def update_event(event_id: int, event: Events):
-    try:
-        with db.engine.begin() as conn:
-            conn.execute(
-                sa.text(
-                    """
-                        UPDATE events
-                        SET 
-                        name = COALESCE(:name, name),
-                        participants_limit = COALESCE(:participants_limit, participants_limit),
-                        location = COALESCE(:location, location),
-                        date = COALESCE(:date, date)
-                        WHERE id = :event_id
-                        """
-                ),
-                {
-                    "name": event.name,
-                    "participants_limit": event.participants_limit,
-                    "location": event.location,
-                    "date": event.date,
-                    "event_id": event_id,
-                },
+            return EventParticipantsResponse(
+                event_id=event["id"],
+                event_name=event["name"],
+                participant_limit=event["participant_limit"],
+                participants=[
+                    EventParticipant(
+                        player_id=row["player_id"],
+                        name=row["name"],
+                        utr=row["utr_rating"],
+                    )
+                    for row in participants
+                ],
             )
-    except sa.exc.SQLAlchemyError as err:
-        raise err
-    return status.HTTP_204_NO_CONTENT
-
-
-@router.post("/{event_id}/{player_id}", status_code=status.HTTP_200_OK)
-def add_player_to_event(event_id: int, player_id: int):
-    try:
-        with db.engine.begin() as conn:
-            conn.execute(
-                sa.text(
-                    """
-                        INSERT INTO event_participants (event_id, player_id)
-                        VALUES (:event_id, :player_id)
-                        """
-                ),
-                {
-                    "event_id": event_id,
-                    "player_id": player_id,
-                },
-            )
-    except sa.exc.SQLAlchemyError as err:
-        raise err
-    return status.HTTP_200_OK
+    except sa.exc.SQLAlchemyError:
+        return EventResponse(success=False, msg="Internal Server Error")

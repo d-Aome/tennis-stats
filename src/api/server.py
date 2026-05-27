@@ -2,7 +2,9 @@ from fastapi import FastAPI
 from src.api import player, matches, events
 from starlette.middleware.cors import CORSMiddleware
 
-description = """Welcome to Tennis stats, it can help you track player statistics"""
+description = """
+Central Coast Cauldrons is the premier ecommerce site for all your alchemical desires.
+"""
 tags_metadata = [
     {"name": "player", "description": "Add, Update and View Player Statistics"},
     {
@@ -24,10 +26,7 @@ app = FastAPI(
     openapi_tags=tags_metadata,
 )
 
-origins = [
-    "https://tennis-stats-v3o5.onrender.com",
-    "https://tennis-stats-ivory.vercel.app/",
-]
+origins = ["https://tennis-stats-v3o5.onrender.com"]
 
 app.add_middleware(
     CORSMiddleware,

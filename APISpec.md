@@ -231,3 +231,45 @@ Find Events witt certain search parameters
 "Format" :  "integer" /* The number of sets to win a match 3 or 5. /*
 }
 ```
+
+## V4 2 Complex Endpoints
+
+### 4.1 Add Player to Event - `/events/{event_id}/players` (POST)
+
+Adds a player to an event. This endpoint is more complex than just normal create/update/delete/read because it checks that the event exists, checks that the player exists, checks that the player is not already in the event, checks that the event is not full, and then inserts the player into the event inside one transaction.
+
+**Request**:
+```json
+{
+  "player_id": "integer"
+}
+```
+
+**Response**:
+```json
+{
+  "success": "boolean",
+  "msg": "string"
+}
+```
+
+### 4.2 Complete Match - `/matches/{match_id}/complete` (POST)
+
+Completes a match. This endpoint is more complex than create/update/delete/read because it locks the match row, checks that the match exists, checks that the winning team is actually in the match, updates the match score, updates the match participants to mark the winners, and finally updates each winning player's match win total inside one transaction.
+
+**Request**:
+```json
+{
+  "score": "string",
+  "winning_team": "integer"
+}
+```
+
+**Response**:
+```json
+{
+  "success": "boolean",
+  "msg": "string"
+}
+```
+
