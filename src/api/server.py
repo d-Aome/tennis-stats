@@ -1,6 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from src.api import player, matches, events
 from starlette.middleware.cors import CORSMiddleware
+import time
+from datetime import datetime
 
 description = """
 Central Coast Cauldrons is the premier ecommerce site for all your alchemical desires.
@@ -28,6 +30,29 @@ app = FastAPI(
 
 origins = ["https://tennis-stats-v3o5.onrender.com"]
 
+
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start_time = time.perf_counter()
+
+    # Process the request and get the response
+    response = await call_next(request)
+
+    # Calculate execution time
+    process_time_ms = time.perf_counter() - start_time
+
+    # Add the duration to a custom response header
+    response.headers["X-Process-Time-Ms"] = f"{process_time_ms:.2f}ms"
+
+    print(f"Request path: {request.url.path} | Duration: {process_time_ms:.2f} ms")
+    return response
+
+
+@app.get("/time")
+async def get_current_time():
+    return {"current_time": datetime.now().isoformat(), "status": "success"}
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -35,6 +60,7 @@ app.add_middleware(
     allow_methods=["GET", "OPTIONS"],
     allow_headers=["*"],
 )
+
 
 app.include_router(player.router)
 app.include_router(matches.router)

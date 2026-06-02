@@ -1,0 +1,8 @@
+\n
+--- Timing Breakdown ---
+DNS Lookup: %{time_namelookup}s \n
+Connect: %{time_connect}s \n
+SSL Handshake: %{time_appconnect}s \n
+Pre-Transfer: %{time_pretransfer}s \n
+TTFB (Time to First Byte): %{time_starttransfer}s \n
+Total Time: %{time_total}s\n

@@ -44,3 +44,10 @@ class PlayerStat(Base):
     first_serve_percentage = Column(Float, nullable=True)
     second_serve_percentage = Column(Float, nullable=True)
     matches_won = Column(Integer, nullable=False, default=0)
+
+
+class EventParticipant(Base):
+    __tablename__ = "event_participants"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
+    player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
