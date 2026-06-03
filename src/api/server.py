@@ -4,9 +4,7 @@ from starlette.middleware.cors import CORSMiddleware
 import time
 from datetime import datetime
 
-description = """
-Central Coast Cauldrons is the premier ecommerce site for all your alchemical desires.
-"""
+
 tags_metadata = [
     {"name": "player", "description": "Add, Update and View Player Statistics"},
     {
@@ -57,7 +55,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["GET", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 

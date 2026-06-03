@@ -1,8 +1,8 @@
-from typing import List
+from typing import List, Optional
 
 import sqlalchemy as sa
-from fastapi import APIRouter, Depends, status
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 
 from src import database as db
 from src.api import auth
@@ -15,7 +15,7 @@ router = APIRouter(
 
 
 class Match(BaseModel):
-    score: str
+    score: Optional[str] = None
 
 
 class Particapant(BaseModel):
@@ -24,24 +24,36 @@ class Particapant(BaseModel):
     team: int
 
 
+class MatchRequest(BaseModel):
+    match: Match
+    players: List[Particapant]
+
+
 class Response(BaseModel):
     success: bool
     msg: str
 
 
-@router.post("/", status_code=status.HTTP_200_OK)
-def post_match(match: Match, players: List[Particapant]):
+@router.post("/", status_code=status.HTTP_201_CREATED)
+def post_match(body: MatchRequest):
+    if len(body.players) not in (2, 4):
+        return Response(success=False, msg="A match must have exactly 2 or 4 players")
+
+    player_ids = [p.player_id for p in body.players]
+    if len(player_ids) != len(set(player_ids)):
+        return Response(success=False, msg="Duplicate player_id in players list")
+
     try:
         with db.engine.begin() as conn:
             match_id = conn.execute(
                 sa.text(
                     """
-                        INSERT INTO matches (score)
-                        VALUES (:score)
-                        RETURNING id
-                        """
+                    INSERT INTO matches (score)
+                    VALUES (:score)
+                    RETURNING id
+                    """
                 ),
-                {"score": match.score},
+                {"score": body.match.score},
             ).scalar_one()
 
             players_list = [
@@ -51,7 +63,7 @@ def post_match(match: Match, players: List[Particapant]):
                     "winner": player.winner,
                     "team": player.team,
                 }
-                for player in players
+                for player in body.players
             ]
 
             conn.execute(
@@ -68,72 +80,11 @@ def post_match(match: Match, players: List[Particapant]):
     return Response(success=True, msg=f"match id: {match_id}")
 
 
-@router.put("/{match_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.put("/{match_id}", status_code=status.HTTP_200_OK)
 def update_match(match_id: int, score: Match):
     try:
         with db.engine.begin() as conn:
-            conn.execute(
-                sa.text(
-                    """
-                        UPDATE matches
-                        SET 
-                        score = :score
-                        WHERE id = :match_id
-                        """
-                ),
-                {"score": score.score, "match_id": match_id},
-            )
-    except sa.exc.SQLAlchemyError:
-        raise status.HTTP_500_INTERNAL_SERVER_ERROR
-
-
-class CompleteMatch(BaseModel):
-    score: str
-    winning_team: int
-
-
-@router.post("/{match_id}/complete", status_code=status.HTTP_200_OK)
-def complete_match(match_id: int, completed_match: CompleteMatch):
-    try:
-        with db.engine.begin() as conn:
-            match_exists = conn.execute(
-                sa.text(
-                    """
-                    SELECT id
-                    FROM matches
-                    WHERE id = :match_id
-                    FOR UPDATE
-                    """
-                ),
-                {"match_id": match_id},
-            ).first()
-
-            if not match_exists:
-                return Response(success=False, msg="Match not found")
-
-            participants = (
-                conn.execute(
-                    sa.text(
-                        """
-                        SELECT player_id, team
-                        FROM match_participants
-                        WHERE match_id = :match_id
-                        """
-                    ),
-                    {"match_id": match_id},
-                )
-                .mappings()
-                .all()
-            )
-
-            if len(participants) < 2:
-                return Response(success=False, msg="Match needs at least two players")
-
-            teams = {player["team"] for player in participants}
-            if completed_match.winning_team not in teams:
-                return Response(success=False, msg="Winning team is not in this match")
-
-            conn.execute(
+            result = conn.execute(
                 sa.text(
                     """
                     UPDATE matches
@@ -141,37 +92,10 @@ def complete_match(match_id: int, completed_match: CompleteMatch):
                     WHERE id = :match_id
                     """
                 ),
-                {"score": completed_match.score, "match_id": match_id},
+                {"score": score.score, "match_id": match_id},
             )
-
-            conn.execute(
-                sa.text(
-                    """
-                    UPDATE match_participants
-                    SET winner = (team = :winning_team)
-                    WHERE match_id = :match_id
-                    """
-                ),
-                {"winning_team": completed_match.winning_team, "match_id": match_id},
-            )
-
-            winning_players = [
-                player["player_id"]
-                for player in participants
-                if player["team"] == completed_match.winning_team
-            ]
-
-            for player_id in winning_players:
-                conn.execute(
-                    sa.text(
-                        """
-                        UPDATE player_stats
-                        SET matches_won = matches_won + 1
-                        WHERE player_id = :player_id
-                        """
-                    ),
-                    {"player_id": player_id},
-                )
+            if result.rowcount == 0:
+                raise HTTPException(status_code=404, detail="Match not found")
     except sa.exc.SQLAlchemyError:
         return Response(success=False, msg="Internal Server Error")
-    return Response(success=True, msg="Match completed")
+    return Response(success=True, msg="")

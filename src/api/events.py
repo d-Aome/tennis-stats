@@ -65,6 +65,25 @@ def create_event(new_event: Event):
     return EventResponse(success=True, msg=f"Event id: {event_id}")
 
 
+@router.get("/", status_code=status.HTTP_200_OK)
+def get_events(name: str = None, location: str = None):
+    try:
+        with db.engine.begin() as conn:
+            query = "SELECT id, name, participant_limit, location FROM events WHERE 1=1"
+            params = {}
+            if name:
+                query += " AND name ILIKE :name"
+                params["name"] = f"%{name}%"
+            if location:
+                query += " AND location ILIKE :location"
+                params["location"] = f"%{location}%"
+
+            events = conn.execute(sa.text(query), params).mappings().all()
+            return [dict(e) for e in events]
+    except sa.exc.SQLAlchemyError:
+        return EventResponse(success=False, msg="Internal Server Error")
+
+
 @router.post("/{event_id}/players", status_code=status.HTTP_200_OK)
 def add_player_to_event(event_id: int, player: AddPlayer):
     try:
