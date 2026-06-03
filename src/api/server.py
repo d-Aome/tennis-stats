@@ -16,7 +16,6 @@ tags_metadata = [
 
 app = FastAPI(
     title="Tennis Stats",
-    description=description,
     version="0.0.1",
     terms_of_service="http://example.com/terms/",
     contact={
